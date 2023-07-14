@@ -1,24 +1,24 @@
 {
     "domain": "acaia",
     "name": "Acaia",
-    "dependencies": [
-      "bluetooth_adapters"
-    ],
-    "config_flow": true,
-    "version": "0.0.1",
-    "documentation": "https://github.com/zweckj/acaia-hass-integration",
-    "issue_tracker": "https://github.com/zweckj/acaia-hass-integration/issues",
-    "codeowners": [
-      "@zweckj"
-    ],
-    "requirements": [
-      "pyacaia_async==0.0.3"
-    ],
     "bluetooth": [
       {
         "manufacturer_id": 16962
       }
     ],
-    "iot_class": "assumed_state"
+    "codeowners": [
+      "@zweckj"
+    ],
+    "config_flow": true,
+    "dependencies": [
+      "bluetooth_adapters"
+    ],
+    "documentation": "https://github.com/zweckj/acaia-hass-integration",
+    "issue_tracker": "https://github.com/zweckj/acaia-hass-integration/issues",
+    "iot_class": "assumed_state",
+    "requirements": [
+      "pyacaia_async==0.0.3"
+    ],
+    "version": "0.0.1"
   }
   
