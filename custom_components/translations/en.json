@@ -1,0 +1,15 @@
+{
+    "config": {
+        "title": "acaia",
+        "step": {
+            "user": {
+                "title": "Setup your Acaia Scale",
+                "description": "Set a name of your choosing and enter the mac address of your scale.",
+                "data": {
+                    "name": "Display Name",
+                    "mac_address": "MAC Address"
+                }
+            }
+        }
+    }
+}
