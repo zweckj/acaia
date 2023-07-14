@@ -5,6 +5,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 
 from .const import (
+    CONF_IS_PYXIS_STYLE,
     CONF_MAC_ADDRESS,
     CONF_NAME,
     DOMAIN,
@@ -28,6 +29,8 @@ class AcaiaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._errors = {}
 
         if user_input is not None:
+            await self.async_set_unique_id(user_input[CONF_MAC_ADDRESS])
+            self._abort_if_unique_id_configured()
             return self.async_create_entry(
                     title="Acaia", 
                     data=user_input
@@ -38,6 +41,7 @@ class AcaiaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     {
                         vol.Required(CONF_NAME, default=self._discovered.get(CONF_NAME, "")): str,
                         vol.Required(CONF_MAC_ADDRESS, default=self._discovered.get(CONF_MAC_ADDRESS, "")): str,
+                        vol.Optional(CONF_IS_PYXIS_STYLE, default=False): bool,
                     }
                 )
             )
@@ -46,5 +50,9 @@ class AcaiaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_bluetooth(self, discovery_info):
         self._discovered[CONF_MAC_ADDRESS] = discovery_info.address
         self._discovered[CONF_NAME] = discovery_info.name
+
+        await self.async_set_unique_id(discovery_info.address)
+        self._abort_if_unique_id_configured()
+        
         return await self.async_step_user()
     

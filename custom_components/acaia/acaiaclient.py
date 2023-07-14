@@ -12,11 +12,11 @@ _LOGGER = logging.getLogger(__name__)
 
 class AcaiaClient(AcaiaScale):
 
-    def __init__(self, hass, mac, name):
+    def __init__(self, hass, mac, name, is_pyxis_style=False):
         self._last_action_timestamp = None
         self.hass = hass
         self._name = name
-        super().__init__(mac=mac)
+        super().__init__(mac=mac, isPyxisStyle=is_pyxis_style)
 
 
     @property 

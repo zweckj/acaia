@@ -71,4 +71,6 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
         """ callback which gets called whenever the websocket receives data """
         if isinstance(data, Settings):
             self._battery_level = data.battery
-        self.async_set_updated_data(self._battery_level)
+            _LOGGER.debug(f"Got battery level {self._battery_level}")
+            # self.async_update_listeners()
+            self.async_set_updated_data(self._battery_level)

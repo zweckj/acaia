@@ -7,7 +7,8 @@
                 "description": "Set a name of your choosing and enter the mac address of your scale.",
                 "data": {
                     "name": "Display Name",
-                    "mac_address": "MAC Address"
+                    "mac_address": "MAC Address",
+                    "is_pyxis_style": "Is this a Pyxis style scale? If the integration fails to work, try toggling this setting."
                 }
             }
         }

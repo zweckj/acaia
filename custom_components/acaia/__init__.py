@@ -9,6 +9,7 @@ from .acaiaclient import AcaiaClient
 from .coordinator import AcaiaApiCoordinator
 
 from .const import (
+    CONF_IS_PYXIS_STYLE,
     CONF_NAME,
     CONF_MAC_ADDRESS, 
     DOMAIN,
@@ -30,8 +31,9 @@ async def async_setup_entry(hass, config_entry):
 
     name = config_entry.data[CONF_NAME]
     mac = config_entry.data[CONF_MAC_ADDRESS]
+    is_pyxis_style = config_entry.data.get(CONF_IS_PYXIS_STYLE, False)
 
-    acaia_client = AcaiaClient(hass, mac, name)
+    acaia_client = AcaiaClient(hass, mac=mac, name=name, is_pyxis_style=is_pyxis_style)
 
     hass.data[DOMAIN][config_entry.entry_id] = coordinator = AcaiaApiCoordinator(hass, config_entry, acaia_client)
 
