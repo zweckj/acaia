@@ -1,7 +1,7 @@
 """
 Acaia Integration
 """
-
+import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -9,6 +9,7 @@ from .acaiaclient import AcaiaClient
 from .coordinator import AcaiaApiCoordinator
 
 from .const import (
+    CONF_NAME,
     CONF_MAC_ADDRESS, 
     DOMAIN,
 )
@@ -16,6 +17,7 @@ from .const import (
 
 PLATFORMS = ["button"]
 
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Acaia component."""
@@ -26,9 +28,10 @@ async def async_setup(hass: HomeAssistant, config: dict):
 async def async_setup_entry(hass, config_entry):
     """Set up Acaia as config entry."""
 
-    # mac = "60:8a:10:4e:24:50"
+    name = config_entry.data[CONF_NAME]
     mac = config_entry.data[CONF_MAC_ADDRESS]
-    acaia_client = AcaiaClient(mac)
+
+    acaia_client = AcaiaClient(hass, mac, name)
 
     hass.data[DOMAIN][config_entry.entry_id] = coordinator = AcaiaApiCoordinator(hass, config_entry, acaia_client)
 

@@ -9,7 +9,6 @@ from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
 from pyacaia_async.decode import Settings
 
 SCAN_INTERVAL = timedelta(seconds=30)
-UPDATE_DELAY = 15
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
         self._acaia_client = acaia_client
 
     @property
-    def acia_client(self):
+    def acaia_client(self):
         return self._acaia_client
     
 
@@ -41,29 +40,29 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
         try:
             scanner_count = bluetooth.async_scanner_count(self.hass, connectable=True)
             if scanner_count == 0:
-                self.acia_client._connected = False
+                self.acaia_client._connected = False
                 _LOGGER.debug("Update coordinator: No bluetooth scanner available")
                 return
             
-            self._device_available = await bluetooth.async_address_present(
+            self._device_available = bluetooth.async_address_present(
                     self.hass, 
                     self._acaia_client.mac, 
                     connectable=True
                 )
             
-            if not self._connected and self._device_available:
+            if not self.acaia_client._connected and self._device_available:
                 _LOGGER.debug("Update coordinator: Connecting...")
                 await self._acaia_client.connect(callback=self._on_data_received)
 
             elif not self._device_available:
-                self.acia_client._connected = False
-                _LOGGER.debug("Update coordinator: Device not available")
+                self.acaia_client._connected = False
+                _LOGGER.debug(f"Update coordinator: Device with MAC {self._acaia_client.mac} not available")
 
             else:
                 await self._acaia_client.send_id()
         except Exception as ex:
             _LOGGER.error(ex)
-            raise UpdateFailed("Error: %s", ex)
+            raise UpdateFailed("Error: %s", str(ex))
         
         return self._battery_level
 

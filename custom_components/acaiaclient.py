@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import time
 
@@ -13,19 +12,20 @@ _LOGGER = logging.getLogger(__name__)
 
 class AcaiaClient(AcaiaScale):
 
-    def __init__(self, hass, mac):
+    def __init__(self, hass, mac, name):
         self._last_action_timestamp = None
         self.hass = hass
-        self._mac = mac
-        ble_device = bluetooth.async_ble_device_from_address(self.hass,
-                                                            self._mac,
-                                                            connectable=True)
-        super().__init__(bleDevice=ble_device)
+        self._name = name
+        super().__init__(mac=mac)
 
 
     @property 
     def mac(self):
-        return self._mac
+        return self._mac.upper()
+    
+    @property
+    def name(self):
+        return self._name
 
     async def connect(self, callback=None):
         try:
@@ -34,8 +34,7 @@ class AcaiaClient(AcaiaScale):
                 ble_device = bluetooth.async_ble_device_from_address(self.hass,
                                                                     self._mac,
                                                                     connectable=True)
-                client = self._lm_bluetooth.new_bleak_client_from_ble_device(ble_device)    
-                self._client = client
+                self.new_client_from_ble_device(ble_device)    
 
                 await super().connect(callback=callback)
                 self.hass.async_create_task(self._process_queue())

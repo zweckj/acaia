@@ -1,6 +1,6 @@
 {
     "domain": "acaia",
-    "name": "Acaia Scales",
+    "name": "Acaia",
     "dependencies": [
       "bluetooth_adapters"
     ],
@@ -10,7 +10,12 @@
       "@zweckj"
     ],
     "requirements": [
-      "pyacia_async==0.0.1"
+      "pyacaia_async==0.0.3"
+    ],
+    "bluetooth": [
+      {
+        "manufacturer_id": 16962
+      }
     ],
     "iot_class": "assumed_state"
   }
