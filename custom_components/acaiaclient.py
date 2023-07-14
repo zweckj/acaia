@@ -42,7 +42,7 @@ class AcaiaClient(AcaiaScale):
                 
             self._last_action_timestamp = time.time()
         except Exception as ex:
-            raise HomeAssistantError("Error connecting to device") from ex
+            _LOGGER.warn(f"Couldn't connect to device {self.name} with MAC {self.mac}")
 
 
     async def tare(self):
