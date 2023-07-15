@@ -13,9 +13,9 @@
     "dependencies": [
       "bluetooth_adapters"
     ],
-    "documentation": "https://github.com/zweckj/acaia-hass-integration",
+    "documentation": "https://github.com/zweckj/acaia",
     "iot_class": "assumed_state",
-    "issue_tracker": "https://github.com/zweckj/acaia-hass-integration/issues",
+    "issue_tracker": "https://github.com/zweckj/acaia/issues",
     "requirements": [
       "pyacaia_async==0.0.3"
     ],
