@@ -6,7 +6,14 @@ from homeassistant.components import bluetooth
 from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
                                                       UpdateFailed)
 
-from pyacaia_async.decode import Settings
+from pyacaia_async.decode import Settings, Message
+
+from .const import (
+    BATTERY_LEVEL,
+    GRAMS,
+    UNITS,
+    WEIGHT
+)
 
 SCAN_INTERVAL = timedelta(seconds=30)
 
@@ -27,7 +34,11 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
             update_interval=SCAN_INTERVAL
         )
         self._device_available = False
-        self._battery_level = None
+        self._data = {
+            BATTERY_LEVEL: None,
+            UNITS: GRAMS,
+            WEIGHT: 0.0
+        }
 
         self._acaia_client = acaia_client
 
@@ -59,18 +70,23 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug(f"Update coordinator: Device with MAC {self._acaia_client.mac} not available")
 
             else:
-                await self._acaia_client.send_id()
+                await self._acaia_client.auth()
         except Exception as ex:
             _LOGGER.error(ex)
             raise UpdateFailed("Error: %s", str(ex))
         
-        return self._battery_level
+        return self._data
 
     @callback
     def _on_data_received(self, characteristic, data):
         """ callback which gets called whenever the websocket receives data """
         if isinstance(data, Settings):
-            self._battery_level = data.battery
-            _LOGGER.debug(f"Got battery level {self._battery_level}")
-            # self.async_update_listeners()
-            self.async_set_updated_data(self._battery_level)
+            self._data[BATTERY_LEVEL] = data.battery
+            self._data[UNITS] = data.unit
+            _LOGGER.debug(f"Got battery level {self._battery_level}, units {self._units}")
+            #self.async_set_updated_data(self._battery_level)
+        elif isinstance(data, Message):
+            self._data[WEIGHT] = data.value
+            #self.async_set_updated_data(self._weight)
+        self.async_update_listeners()
+

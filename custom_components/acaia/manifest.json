@@ -17,7 +17,7 @@
     "issue_tracker": "https://github.com/zweckj/acaia-hass-integration/issues",
     "iot_class": "assumed_state",
     "requirements": [
-      "pyacaia_async==0.0.3"
+      "pyacaia_async==0.0.4"
     ],
     "version": "0.0.1"
   }

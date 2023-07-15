@@ -7,7 +7,7 @@
                 "data": {
                     "name": "Display Name",
                     "mac_address": "MAC Address",
-                    "is_pyxis_style": "Is this a Pyxis style scale? If the integration fails to work, try toggling this setting."
+                    "is_new_style_scale": "Is this a newer (than 2021) scale? If the integration fails to work, try toggling this setting."
                 }
             }
         }

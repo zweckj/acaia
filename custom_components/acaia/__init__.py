@@ -9,14 +9,14 @@ from .acaiaclient import AcaiaClient
 from .coordinator import AcaiaApiCoordinator
 
 from .const import (
-    CONF_IS_PYXIS_STYLE,
+    CONF_IS_NEW_STYLE_SCALE,
     CONF_NAME,
     CONF_MAC_ADDRESS, 
     DOMAIN,
 )
 
 
-PLATFORMS = ["button"]
+PLATFORMS = ["button", "sensor"]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,9 +31,9 @@ async def async_setup_entry(hass, config_entry):
 
     name = config_entry.data[CONF_NAME]
     mac = config_entry.data[CONF_MAC_ADDRESS]
-    is_pyxis_style = config_entry.data.get(CONF_IS_PYXIS_STYLE, False)
+    is_new_style_scale = config_entry.data.get(CONF_IS_NEW_STYLE_SCALE, True)
 
-    acaia_client = AcaiaClient(hass, mac=mac, name=name, is_pyxis_style=is_pyxis_style)
+    acaia_client = AcaiaClient(hass, mac=mac, name=name, is_new_style_scale=is_new_style_scale)
 
     hass.data[DOMAIN][config_entry.entry_id] = coordinator = AcaiaApiCoordinator(hass, config_entry, acaia_client)
 

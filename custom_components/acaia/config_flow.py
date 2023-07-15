@@ -5,7 +5,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 
 from .const import (
-    CONF_IS_PYXIS_STYLE,
+    CONF_IS_NEW_STYLE_SCALE,
     CONF_MAC_ADDRESS,
     CONF_NAME,
     DOMAIN,
@@ -41,7 +41,7 @@ class AcaiaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     {
                         vol.Required(CONF_NAME, default=self._discovered.get(CONF_NAME, "")): str,
                         vol.Required(CONF_MAC_ADDRESS, default=self._discovered.get(CONF_MAC_ADDRESS, "")): str,
-                        vol.Optional(CONF_IS_PYXIS_STYLE, default=False): bool,
+                        vol.Optional(CONF_IS_NEW_STYLE_SCALE, default=True): bool,
                     }
                 )
             )
