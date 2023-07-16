@@ -9,7 +9,10 @@ This is an integration to control your Acaia Scales. Currently starting/stopping
 ### Manually
 Copy the contents of the `custom_components` folder to a `acaia` folder in your Home Assistant's `custom_components` folder.
 
+### HACS
+TBD
+
 ## Setup
-This integration requires a Bluetooth connection from HA to your scale. You can use a Bluetooth Proxy if you're not close enough.
+This integration requires a Bluetooth connection from HA to your scale. You can use an ESP Home [Bluetooth Proxy](https://esphome.github.io/bluetooth-proxies/) if you're not close enough.
 
 After you added the integration to your HA, when you turn your scale on, it should be discovered automatically from Home Assistant
