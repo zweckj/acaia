@@ -16,7 +16,7 @@ from .const import (
 )
 
 
-PLATFORMS = ["button", "sensor"]
+PLATFORMS = ["button", "sensor", "binary_sensor"]
 
 _LOGGER = logging.getLogger(__name__)
 
