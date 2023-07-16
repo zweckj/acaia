@@ -1,6 +1,7 @@
 import logging
 
-from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
+from homeassistant.components.sensor import (SensorDeviceClass,
+                                             RestoreSensor,
                                              SensorStateClass)
 from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
@@ -47,7 +48,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     )
 
 
-class AcaiaSensor(CoordinatorEntity, SensorEntity):
+class AcaiaSensor(CoordinatorEntity, RestoreSensor):
     def __init__(self, coordinator, sensor_type):
         super().__init__(coordinator)
 

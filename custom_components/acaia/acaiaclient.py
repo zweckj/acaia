@@ -37,8 +37,9 @@ class AcaiaClient(AcaiaScale):
                 self.new_client_from_ble_device(ble_device)    
 
                 await super().connect(callback=callback)
-                self.hass.async_create_task(self._process_queue())
                 self.hass.async_create_task(self._send_heartbeats())
+                self.hass.async_create_task(self._process_queue())
+                
                 
             self._last_action_timestamp = time.time()
         except Exception as ex:
