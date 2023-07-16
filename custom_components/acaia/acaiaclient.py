@@ -6,7 +6,6 @@ from homeassistant.exceptions import HomeAssistantError
 
 from pyacaia_async import AcaiaScale
 
-INACTIVITY_TIMEOUT = 120
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +36,7 @@ class AcaiaClient(AcaiaScale):
                 self.new_client_from_ble_device(ble_device)    
 
                 await super().connect(callback=callback)
-                self.hass.async_create_task(self._send_heartbeats())
+                self.hass.async_create_task(self._send_heartbeats(interval=4))
                 self.hass.async_create_task(self._process_queue())
                 
                 
