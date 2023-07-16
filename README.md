@@ -15,4 +15,8 @@ TBD
 ## Setup
 This integration requires a Bluetooth connection from HA to your scale. You can use an ESP Home [Bluetooth Proxy](https://esphome.github.io/bluetooth-proxies/) if you're not close enough.
 
-After you added the integration to your HA, when you turn your scale on, it should be discovered automatically from Home Assistant
+After you added the integration to your HA, when you turn your scale on, it should be discovered automatically from Home Assistant.
+
+This integration is tested so far with a Lunar (2021). If you have a different scale, please feel free to test and report back. 
+
+For scale versions before 2021, uncheck the `is_new_style_scale` setting during setup.
