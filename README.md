@@ -1,7 +1,7 @@
 # Acaia Scales Home Assistant Integration
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)  
-[![issues_badge](https://img.shields.io/github/issues-raw/zweckj/acaia?style=for-the-badge)](https://github.com/patrickhilker/tedee_hass_integration/issues)  
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![issues_badge](https://img.shields.io/github/issues-raw/zweckj/acaia)](https://github.com/patrickhilker/tedee_hass_integration/issues)  
 
 This is an integration to control your Acaia Scales. Currently starting/stopping/resetting the timer and taring the scale is supported.
 
@@ -10,7 +10,7 @@ This is an integration to control your Acaia Scales. Currently starting/stopping
 Copy the contents of the `custom_components` folder to a `acaia` folder in your Home Assistant's `custom_components` folder.
 
 ### HACS
-TBD
+You need to add it as [custom repository](https://hacs.xyz/docs/faq/custom_repositories)
 
 ## Setup
 This integration requires a Bluetooth connection from HA to your scale. You can use an ESP Home [Bluetooth Proxy](https://esphome.github.io/bluetooth-proxies/) if you're not close enough.
