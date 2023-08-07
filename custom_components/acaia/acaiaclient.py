@@ -36,7 +36,13 @@ class AcaiaClient(AcaiaScale):
                 self.new_client_from_ble_device(ble_device)    
 
                 await super().connect(callback=callback)
-                self.hass.async_create_task(self._send_heartbeats(interval=4))
+                interval = 1 if self._is_new_style_scale else 5
+                self.hass.async_create_task(
+                    self._send_heartbeats(
+                        interval=interval, 
+                        new_style_heartbeat=self._is_new_style_scale
+                        )
+                    )
                 self.hass.async_create_task(self._process_queue())
                 
                 
