@@ -67,6 +67,7 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
 
             elif not self._device_available:
                 self.acaia_client._connected = False
+                self.acaia_client._timer_running = False
                 _LOGGER.debug(f"Update coordinator: Device with MAC {self._acaia_client.mac} not available")
 
             else:

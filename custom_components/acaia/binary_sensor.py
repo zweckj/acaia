@@ -19,8 +19,15 @@ BINARY_SENSORS = {
     "timer_running": {
         "name": "Timer running",
         "device_class": BinarySensorDeviceClass.RUNNING,
-        "icon": "mdi:timer"
+        "icon": "mdi:timer",
+        "value_attr": "_timer_running"
     },
+    "connected": {
+        "name": "Connected",
+        "device_class": BinarySensorDeviceClass.CONNECTIVITY,
+        "icon": "mdi:bluetooth",
+        "value_attr": "_connected"
+    }
 }
 
 
@@ -43,6 +50,7 @@ class AcaiaSensor(CoordinatorEntity, BinarySensorEntity):
         self._attr_name = BINARY_SENSORS[sensor_type]["name"]
         self._attr_device_class = BINARY_SENSORS[sensor_type]["device_class"]
         self._attr_icon = BINARY_SENSORS[sensor_type]["icon"]
+        self._value_attr = BINARY_SENSORS[sensor_type]["value_attr"]
 
         self._sensor_type = sensor_type
 
@@ -55,4 +63,4 @@ class AcaiaSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the binary sensor is on."""
-        return self._scale._timer_running
+        return getattr(self._scale, self._value_attr)
