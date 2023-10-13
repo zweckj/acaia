@@ -3,27 +3,31 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.components.sensor import (SensorDeviceClass,
-                                             RestoreSensor,
-                                             SensorStateClass,
-                                             SensorEntityDescription)
-from homeassistant.core import callback
+from homeassistant.components.sensor import (
+    RestoreSensor,
+    SensorDeviceClass,
+    SensorEntityDescription,
+    SensorStateClass,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .const import DOMAIN, OUNCES, UNITS
 from .entity import AcaiaEntity, AcaiaEntityDescription
 
-from .const import (
-    DOMAIN,
-    OUNCES,
-    UNITS,
-)
 
 @dataclass
 class AcaiaSensorEntityDescriptionMixin:
     """Mixin for Acaia Sensor entities."""
-    unit_fn: Callable[[dict[str, Any]], str]
+
+    unit_fn: Callable[[dict[str, Any]], str] | None
+
 
 @dataclass
-class AcaiaSensorEntityDescription(SensorEntityDescription, AcaiaEntityDescription, AcaiaSensorEntityDescriptionMixin):
+class AcaiaSensorEntityDescription(
+    SensorEntityDescription, AcaiaEntityDescription, AcaiaSensorEntityDescriptionMixin
+):
     """Description for Acaia Sensor entities."""
 
 
@@ -32,7 +36,7 @@ SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
         key="battery",
         translation_key="battery",
         device_class=SensorDeviceClass.BATTERY,
-        unit_of_measurement="%",
+        native_unit_of_measurement="%",
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:battery",
         unique_id_fn=lambda scale: f"{scale.mac}_battery",
@@ -42,16 +46,20 @@ SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
         key="weight",
         translation_key="weight",
         device_class=SensorDeviceClass.WEIGHT,
-        unit_of_measurement="g",
+        native_unit_of_measurement="g",
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:scale",
         unique_id_fn=lambda scale: f"{scale.mac}_weight",
         unit_fn=lambda data: "oz" if data.get(UNITS) == OUNCES else "g",
-    )
+    ),
 )
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up button entities and services."""
 
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
@@ -65,11 +73,11 @@ class AcaiaSensor(AcaiaEntity, RestoreSensor):
 
     entity_description: AcaiaSensorEntityDescription
 
-    def __init__(self, coordinator, entity_description):
+    def __init__(self, coordinator, entity_description) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, entity_description)
 
-        self._native_unit_of_measurement: str = entity_description.unit_of_measurement
+        self._native_unit_of_measurement = entity_description.native_unit_of_measurement
         self._data: dict[str, Any] = {}
         self._restored: bool = False
 
@@ -84,7 +92,9 @@ class AcaiaSensor(AcaiaEntity, RestoreSensor):
         await super().async_added_to_hass()
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             self._data[self.entity_description.key] = last_sensor_data.native_value
-            self._native_unit_of_measurement  = last_sensor_data.native_unit_of_measurement
+            self._native_unit_of_measurement = (
+                last_sensor_data.native_unit_of_measurement
+            )
             self._restored = True
 
     @property

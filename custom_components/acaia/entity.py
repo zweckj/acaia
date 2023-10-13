@@ -12,7 +12,6 @@ from .acaiaclient import AcaiaClient
 from .const import DOMAIN
 
 
-
 @dataclass
 class AcaiaEntityDescriptionMixin:
     """Mixin for all LM entities."""
@@ -42,11 +41,10 @@ class AcaiaEntity(CoordinatorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._scale.mac)},
             name=self._scale.name,
-            manufacturer="acaia"
+            manufacturer="acaia",
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self.async_write_ha_state()
-
