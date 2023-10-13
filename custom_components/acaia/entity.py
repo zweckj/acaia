@@ -37,7 +37,8 @@ class AcaiaEntity(CoordinatorEntity):
         self.entity_description = entity_description
         self._scale: AcaiaClient = coordinator.acaia_client
         self._attr_has_entity_name = True
-        self._attr_unique_id = self.entity_description.unique_id_fn(self._scale)
+        self._attr_unique_id = entity_description.unique_id_fn(self._scale)
+
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._scale.mac)},
             name=self._scale.name,

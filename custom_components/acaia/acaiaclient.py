@@ -31,7 +31,17 @@ class AcaiaClient(AcaiaScale):
     def name(self) -> str:
         """Return the name of the scale."""
         return self._name
-
+    
+    @property
+    def timer_running(self) -> bool:
+        """Return whether the timer is running."""
+        return self._timer_running
+    
+    @property
+    def connected(self) -> bool:
+        """Return whether the scale is connected."""
+        return self._connected
+    
     async def connect(self, callback=None) -> None:
         """Connect to the scale."""
         try:

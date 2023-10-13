@@ -33,7 +33,7 @@ BINARY_SENSORS: tuple[AcaiaBinarySensorEntityDescription, ...] = (
         device_class=BinarySensorDeviceClass.RUNNING,
         icon="mdi:timer",
         unique_id_fn=lambda scale: f"{scale.mac}_timer_running",
-        is_on_fn=lambda scale: scale._timer_running
+        is_on_fn=lambda scale: scale.timer_running
     ),
     AcaiaBinarySensorEntityDescription(
         key="connected",
@@ -41,7 +41,7 @@ BINARY_SENSORS: tuple[AcaiaBinarySensorEntityDescription, ...] = (
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         icon="mdi:bluetooth",
         unique_id_fn=lambda scale: f"{scale.mac}_connected",
-        is_on_fn=lambda scale: scale._connected
+        is_on_fn=lambda scale: scale.connected
     )
 )
 

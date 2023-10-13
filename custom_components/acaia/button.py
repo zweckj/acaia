@@ -29,8 +29,8 @@ BUTTONS: tuple[AcaiaButtonEntityDescription, ...] = (
         async_press_fn=lambda scale: scale.tare()
     ),
     AcaiaButtonEntityDescription(
-        key="reset",
-        translation_key="reset",
+        key="reset_timer",
+        translation_key="reset_timer",
         icon="mdi:timer-refresh",
         unique_id_fn=lambda scale: f"{scale.mac}_reset_button",
         async_press_fn=lambda scale: scale.resetTimer()
@@ -61,5 +61,5 @@ class AcaiaButton(AcaiaEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self._async_press_fn(self._scale)
+        await self.entity_description.async_press_fn(self._scale)
         self.async_write_ha_state()

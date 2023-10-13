@@ -20,7 +20,7 @@ from .const import (
 @dataclass
 class AcaiaSensorEntityDescriptionMixin:
     """Mixin for Acaia Sensor entities."""
-    unit_fn: Callable[[dict[str, Any]], str] = None
+    unit_fn: Callable[[dict[str, Any]], str]
 
 @dataclass
 class AcaiaSensorEntityDescription(SensorEntityDescription, AcaiaEntityDescription, AcaiaSensorEntityDescriptionMixin):
@@ -76,7 +76,7 @@ class AcaiaSensor(AcaiaEntity, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._data = self._coordinator.data
+        self._data = self.coordinator.data
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
