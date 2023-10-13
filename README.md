@@ -1,7 +1,7 @@
 # Acaia Scales Home Assistant Integration
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
-[![issues_badge](https://img.shields.io/github/issues-raw/zweckj/acaia?style=for-the-badge)](https://github.com/patrickhilker/tedee_hass_integration/issues)  
+[![issues_badge](https://img.shields.io/github/issues-raw/zweckj/acaia?style=for-the-badge)](https://github.com/zweckj/acaia/issues)  
 
 This is an integration to control your Acaia Scales. Currently starting/stopping/resetting the timer and taring the scale is supported.
 
