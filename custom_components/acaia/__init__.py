@@ -1,9 +1,7 @@
-"""
-Acaia Integration
-"""
-import logging
+"""Initialize the Acaia component."""
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.typing import ConfigType
 
 from .acaiaclient import AcaiaClient
 from .coordinator import AcaiaApiCoordinator
@@ -18,15 +16,14 @@ from .const import (
 
 PLATFORMS = ["button", "sensor", "binary_sensor"]
 
-_LOGGER = logging.getLogger(__name__)
 
-async def async_setup(hass: HomeAssistant, config: dict):
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Acaia component."""
     hass.data.setdefault(DOMAIN, {})
     return True
 
 
-async def async_setup_entry(hass, config_entry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up Acaia as config entry."""
 
     name = config_entry.data[CONF_NAME]
@@ -35,7 +32,7 @@ async def async_setup_entry(hass, config_entry):
 
     acaia_client = AcaiaClient(hass, mac=mac, name=name, is_new_style_scale=is_new_style_scale)
 
-    hass.data[DOMAIN][config_entry.entry_id] = coordinator = AcaiaApiCoordinator(hass, config_entry, acaia_client)
+    hass.data[DOMAIN][config_entry.entry_id] = coordinator = AcaiaApiCoordinator(hass, acaia_client)
 
     await coordinator.async_config_entry_first_refresh()
 
@@ -50,7 +47,7 @@ async def async_setup_entry(hass, config_entry):
 async def async_unload_entry(
         hass: HomeAssistant,
         config_entry: ConfigEntry
-        ):
+        ) -> bool:
     """Unload a config entry."""
 
     unload_ok = await hass.config_entries.async_unload_platforms(

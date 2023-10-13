@@ -1,102 +1,65 @@
-import logging
+"""Button entities for Acaia scales."""
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass
+from typing import Any
 
-from homeassistant.components.button import ButtonEntity
-from homeassistant.core import callback
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
+from .acaiaclient import AcaiaClient
 from .const import DOMAIN
+from .entity import AcaiaEntity, AcaiaEntityDescription
 
-_LOGGER = logging.getLogger(__name__)
+
+@dataclass
+class AcaiaButtonEntityDescriptionMixin:
+    """Mixin for Acaia Button entities."""
+    async_press_fn: Callable[[AcaiaClient], Coroutine[Any, Any, None]]
 
 
-BUTTONS = {
-    "tare": {
-        "name": "Tare",
-        "icon": "mdi:scale-balance",
-    },
-    "reset": {
-        "name": "Reset Timer",
-        "icon": "mdi:timer-refresh",
-    },
-    "start_stop": {
-        "name": "Start/Stop Timer",
-        "icon": "mdi:timer-play",
-    }
-}
+@dataclass
+class AcaiaButtonEntityDescription(ButtonEntityDescription, AcaiaEntityDescription, AcaiaButtonEntityDescriptionMixin):
+    """Description for Acaia Button entities."""
+
+
+BUTTONS: tuple[AcaiaButtonEntityDescription, ...] = (
+    AcaiaButtonEntityDescription(
+        key="tare",
+        translation_key="tare",
+        icon="mdi:scale-balance",
+        unique_id_fn=lambda scale: f"{scale.mac}_tare_button",
+        async_press_fn=lambda scale: scale.tare()
+    ),
+    AcaiaButtonEntityDescription(
+        key="reset",
+        translation_key="reset",
+        icon="mdi:timer-refresh",
+        unique_id_fn=lambda scale: f"{scale.mac}_reset_button",
+        async_press_fn=lambda scale: scale.resetTimer()
+    ),
+    AcaiaButtonEntityDescription(
+        key="start_stop",
+        translation_key="start_stop",
+        icon="mdi:timer-play",
+        unique_id_fn=lambda scale: f"{scale.mac}_start_stop_button",
+        async_press_fn=lambda scale: scale.startStopTimer()
+    )
+)
+
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up button entities and services."""
 
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
     async_add_entities(
-        [
-            TareButton(coordinator),
-            ResetTimerButton(coordinator),
-            StartStopTimerButton(coordinator)
-        ]
+        [AcaiaButton(coordinator, description) for description in BUTTONS]
     )
 
 
-class AcaiaButton(CoordinatorEntity, ButtonEntity):
-    def __init__(self, coordinator, button):
-        super().__init__(coordinator)
+class AcaiaButton(AcaiaEntity, ButtonEntity):
+    """Representation of a Acaia Button."""
 
-        self._coordinator = coordinator
-        self._scale = coordinator.acaia_client
-        self._button = button
-        self._attr_unique_id = f"{self._scale.mac}_" + f"{self._button}_button"
-        self._attr_name = BUTTONS[self._button]["name"]
-        self._attr_icon = BUTTONS[self._button]["icon"]
-
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._scale.mac)},
-            name=self._scale.name,
-            manufacturer="acaia"
-        )
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.async_write_ha_state()
-
-
-
-class TareButton(AcaiaButton):
-
-    def __init__(self, scale):
-        super().__init__(scale, "tare")
+    entity_description: AcaiaButtonEntityDescription
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self._scale.tare()
-
-
-
-class ResetTimerButton(AcaiaButton):
-
-    def __init__(self, scale):
-        super().__init__(scale, "reset")
-
-    async def async_press(self) -> None:
-        """Handle the button press."""
-        await self._scale.resetTimer()
-
-
-class StartStopTimerButton(AcaiaButton):
-
-    def __init__(self, scale):
-        super().__init__(scale, "start_stop")
-
-    @property
-    def icon(self) -> str:
-        if not self._scale._timer_running:
-            return "mdi:timer-play"
-        else:
-            return "mdi:timer-pause"
-
-    async def async_press(self) -> None:
-        """Handle the button press."""
-        await self._scale.startStopTimer()
+        await self._async_press_fn(self._scale)
         self.async_write_ha_state()

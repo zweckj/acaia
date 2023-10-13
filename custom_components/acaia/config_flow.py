@@ -1,8 +1,8 @@
-import logging
+"""Config flow for Acaia integration."""
+from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
 
 from .const import (
     CONF_IS_NEW_STYLE_SCALE,
@@ -11,21 +11,20 @@ from .const import (
     DOMAIN,
 )
 
-_LOGGER = logging.getLogger(__name__)
-
 class AcaiaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Acaia."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
-    reauth_entry: ConfigEntry = None
-
     def __init__(self):
-        self._errors = {}
-        self._reload = False
-        self._discovered = {}
+        """Initialize the config flow."""
+        self._errors: dict = {}
+        self._reload: bool = False
+        self._discovered: dict = {}
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(self, user_input: dict[str, Any] | None = None):
+        """Handle a flow initialized by the user."""
         self._errors = {}
 
         if user_input is not None:
@@ -48,6 +47,7 @@ class AcaiaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
     async def async_step_bluetooth(self, discovery_info):
+        """Handle a discovered Bluetooth device."""
         self._discovered[CONF_MAC_ADDRESS] = discovery_info.address
         self._discovered[CONF_NAME] = discovery_info.name
 

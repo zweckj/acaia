@@ -1,19 +1,23 @@
+"""Coordinator for Acaia integration."""
 import logging
 from datetime import timedelta
+from typing import Any
 
-from homeassistant.core import callback
+from homeassistant.core import callback, HomeAssistant
 from homeassistant.components import bluetooth
 from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
                                                       UpdateFailed)
 
 from pyacaia_async.decode import decode, Settings, Message
 
+from .acaiaclient import AcaiaClient
 from .const import (
     BATTERY_LEVEL,
     GRAMS,
     UNITS,
     WEIGHT
 )
+
 
 SCAN_INTERVAL = timedelta(seconds=30)
 
@@ -23,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 class AcaiaApiCoordinator(DataUpdateCoordinator):
     """Class to handle fetching data from the La Marzocco API centrally"""
 
-    def __init__(self, hass, config_entry, acaia_client):
+    def __init__(self, hass: HomeAssistant, acaia_client: AcaiaClient):
         """Initialize coordinator."""
         super().__init__(
             hass,
@@ -43,11 +47,13 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
         self._acaia_client = acaia_client
 
     @property
-    def acaia_client(self):
+    def acaia_client(self) -> AcaiaClient:
+        """Return the acaia client"""
         return self._acaia_client
     
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch data."""
         try:
             scanner_count = bluetooth.async_scanner_count(self.hass, connectable=True)
             if scanner_count == 0:
@@ -83,7 +89,7 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
 
     @callback
     def _on_data_received(self, characteristic, data):
-        """ callback which gets called whenever the websocket receives data """
+        """Callback whenever the client receives data."""
         msg = decode(data)[0]
 
         if isinstance(msg, Settings):
