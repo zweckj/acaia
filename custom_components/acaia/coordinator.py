@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .acaiaclient import AcaiaClient
 from .const import BATTERY_LEVEL, GRAMS, UNITS, WEIGHT
 
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(seconds=15)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,6 +71,7 @@ class AcaiaApiCoordinator(DataUpdateCoordinator):
             _LOGGER.error(ex)
             raise UpdateFailed("Error: %s" % ex) from ex
 
+        _LOGGER.debug("Update coordinator: Returning data %s", self._data)
         return self._data
 
     @callback
