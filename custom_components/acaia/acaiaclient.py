@@ -22,6 +22,8 @@ class AcaiaClient(AcaiaScale):
         self._last_action_timestamp: float | None = None
         self.hass: HomeAssistant = hass
         self._name: str = name
+        _LOGGER.debug("Initializing AcaiaClient with name %s and MAC %s", name, mac)
+        _LOGGER.debug("Is new style scale: %s", is_new_style_scale)
         super().__init__(mac=mac, is_new_style_scale=is_new_style_scale)
 
     @property
@@ -88,18 +90,18 @@ class AcaiaClient(AcaiaScale):
         except Exception as ex:
             raise HomeAssistantError("Error taring device") from ex
 
-    async def startStopTimer(self) -> None:
+    async def start_stop_timer(self) -> None:
         """Start/Stop the timer."""
         await self.connect()
         try:
-            await super().startStopTimer()
+            await super().start_stop_timer()
         except Exception as ex:
             raise HomeAssistantError("Error starting/stopping timer") from ex
 
-    async def resetTimer(self) -> None:
+    async def reset_timer(self) -> None:
         """Reset the timer."""
         await self.connect()
         try:
-            await super().resetTimer()
+            await super().reset_timer()
         except Exception as ex:
             raise HomeAssistantError("Error resetting timer") from ex
