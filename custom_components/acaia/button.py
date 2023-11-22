@@ -40,14 +40,14 @@ BUTTONS: tuple[AcaiaButtonEntityDescription, ...] = (
         translation_key="reset_timer",
         icon="mdi:timer-refresh",
         unique_id_fn=lambda scale: f"{scale.mac}_reset_button",
-        async_press_fn=lambda scale: scale.resetTimer(),
+        async_press_fn=lambda scale: scale.reset_timer(),
     ),
     AcaiaButtonEntityDescription(
         key="start_stop",
         translation_key="start_stop",
         icon="mdi:timer-play",
         unique_id_fn=lambda scale: f"{scale.mac}_start_stop_button",
-        async_press_fn=lambda scale: scale.startStopTimer(),
+        async_press_fn=lambda scale: scale.start_stop_timer(),
     ),
 )
 
