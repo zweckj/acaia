@@ -13,7 +13,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, OUNCES, UNITS
+from .const import (
+    BATTERY_LEVEL,
+    DOMAIN,
+    OUNCES,
+    UNITS,
+    WEIGHT,
+)
+
 from .entity import AcaiaEntity, AcaiaEntityDescription
 
 
@@ -33,7 +40,7 @@ class AcaiaSensorEntityDescription(
 
 SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
     AcaiaSensorEntityDescription(
-        key="battery",
+        key=BATTERY_LEVEL,
         translation_key="battery",
         device_class=SensorDeviceClass.BATTERY,
         native_unit_of_measurement="%",
@@ -43,7 +50,7 @@ SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
         unit_fn=None,
     ),
     AcaiaSensorEntityDescription(
-        key="weight",
+        key=WEIGHT,
         translation_key="weight",
         device_class=SensorDeviceClass.WEIGHT,
         native_unit_of_measurement="g",
