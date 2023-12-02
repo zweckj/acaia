@@ -20,7 +20,7 @@
   "iot_class": "assumed_state",
   "issue_tracker": "https://github.com/zweckj/acaia/issues",
   "requirements": [
-    "pyacaia_async==0.0.11b1"
+    "pyacaia_async==0.0.11b7"
   ],
   "version": "0.1.1"
 }

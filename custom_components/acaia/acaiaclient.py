@@ -4,9 +4,12 @@ import logging
 import time
 
 from bleak import BleakGATTCharacteristic
+
 from pyacaia_async import AcaiaScale
+from pyacaia_async.const import HEARTBEAT_INTERVAL
 from pyacaia_async.exceptions import AcaiaDeviceNotFound, AcaiaError
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 
@@ -19,6 +22,7 @@ class AcaiaClient(AcaiaScale):
     def __init__(
         self,
         hass: HomeAssistant,
+        entry: ConfigEntry,
         mac: str,
         name: str,
         is_new_style_scale: bool = True,
@@ -27,6 +31,7 @@ class AcaiaClient(AcaiaScale):
         """Initialize the client."""
         self._last_action_timestamp: float | None = None
         self.hass: HomeAssistant = hass
+        self.entry: ConfigEntry = entry
         self._name: str = name
         self._device_available: bool = False
 
@@ -66,6 +71,29 @@ class AcaiaClient(AcaiaScale):
                 "Couldn't connect to device %s with MAC %s", self.name, self.mac
             )
             _LOGGER.debug("Full error: %s", str(ex))
+
+    def _setup_tasks(self) -> None:
+        """Setup background tasks"""
+
+        if self._tasks_initialized:
+            return
+
+        self._heartbeat_task = self.entry.async_create_background_task(
+            hass=self.hass,
+            target=self._send_heartbeats(
+                interval=HEARTBEAT_INTERVAL if not self._is_new_style_scale else 1,
+                new_style_heartbeat=self._is_new_style_scale,
+            ),
+            name="acaia_heartbeat_task",
+        )
+
+        self._process_queue_task = self.entry.async_create_background_task(
+            hass=self.hass,
+            target=self._process_queue(),
+            name="acaia_process_queue_task",
+        )
+
+        self._tasks_initialized = True
 
     async def async_update(self) -> None:
         """Update the data from the scale."""
