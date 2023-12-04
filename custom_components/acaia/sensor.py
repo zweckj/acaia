@@ -87,7 +87,7 @@ class AcaiaSensor(AcaiaEntity, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._data = self.coordinator.data
+        self._data = self.coordinator.data.data
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
