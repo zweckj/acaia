@@ -4,7 +4,6 @@ import logging
 import time
 
 from bleak import BleakGATTCharacteristic
-
 from pyacaia_async import AcaiaScale
 from pyacaia_async.const import HEARTBEAT_INTERVAL
 from pyacaia_async.exceptions import AcaiaDeviceNotFound, AcaiaError
@@ -12,6 +11,9 @@ from pyacaia_async.exceptions import AcaiaDeviceNotFound, AcaiaError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_MAC, CONF_NAME
+
+from .const import CONF_IS_NEW_STYLE_SCALE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,12 +25,13 @@ class AcaiaClient(AcaiaScale):
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
-        mac: str,
-        name: str,
-        is_new_style_scale: bool = True,
         notify_callback: Callable[[], None] | None = None,
     ) -> None:
         """Initialize the client."""
+        name = entry.data[CONF_NAME]
+        mac = entry.data[CONF_MAC]
+        is_new_style_scale = entry.data.get(CONF_IS_NEW_STYLE_SCALE, True)
+
         self._last_action_timestamp: float | None = None
         self.hass: HomeAssistant = hass
         self.entry: ConfigEntry = entry

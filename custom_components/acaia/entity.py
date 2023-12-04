@@ -3,7 +3,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -34,7 +33,7 @@ class AcaiaEntity(CoordinatorEntity):
         """Initialize the entity."""
         super().__init__(coordinator)
         self.entity_description = entity_description
-        self._scale: AcaiaClient = coordinator.acaia_client
+        self._scale: AcaiaClient = coordinator.data
         self._attr_has_entity_name = True
         self._attr_unique_id = entity_description.unique_id_fn(self._scale)
 
@@ -43,8 +42,3 @@ class AcaiaEntity(CoordinatorEntity):
             name=self._scale.name,
             manufacturer="acaia",
         )
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.async_write_ha_state()

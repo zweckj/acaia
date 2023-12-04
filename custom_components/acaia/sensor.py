@@ -13,13 +13,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    BATTERY_LEVEL,
-    DOMAIN,
-    OUNCES,
-    UNITS,
-    WEIGHT,
-)
+from pyacaia_async.const import BATTERY_LEVEL, OUNCE, UNITS, WEIGHT
+
+from .const import DOMAIN
 
 from .entity import AcaiaEntity, AcaiaEntityDescription
 
@@ -57,7 +53,7 @@ SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:scale",
         unique_id_fn=lambda scale: f"{scale.mac}_weight",
-        unit_fn=lambda data: "oz" if data.get(UNITS) == OUNCES else "g",
+        unit_fn=lambda data: "oz" if data.get(UNITS) == OUNCE else "g",
     ),
 )
 
