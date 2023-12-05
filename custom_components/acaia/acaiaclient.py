@@ -78,31 +78,27 @@ class AcaiaClient(AcaiaScale):
     def _setup_tasks(self) -> None:
         """Setup background tasks"""
 
-        if self._tasks_initialized:
-            return
-
-        self._heartbeat_task = self.entry.async_create_background_task(
-            hass=self.hass,
-            target=self._send_heartbeats(
-                interval=HEARTBEAT_INTERVAL if not self._is_new_style_scale else 1,
-                new_style_heartbeat=self._is_new_style_scale,
-            ),
-            name="acaia_heartbeat_task",
-        )
-
-        self._process_queue_task = self.entry.async_create_background_task(
-            hass=self.hass,
-            target=self._process_queue(),
-            name="acaia_process_queue_task",
-        )
-
-        self._tasks_initialized = True
+        if not self._heartbeat_task or self._heartbeat_task.done():
+            self._heartbeat_task = self.entry.async_create_background_task(
+                hass=self.hass,
+                target=self._send_heartbeats(
+                    interval=HEARTBEAT_INTERVAL if not self._is_new_style_scale else 1,
+                    new_style_heartbeat=self._is_new_style_scale,
+                ),
+                name="acaia_heartbeat_task",
+            )
+        if not self._process_queue_task or self._process_queue_task.done():
+            self._process_queue_task = self.entry.async_create_background_task(
+                hass=self.hass,
+                target=self._process_queue(),
+                name="acaia_process_queue_task",
+            )
 
     async def async_update(self) -> None:
         """Update the data from the scale."""
         scanner_count = bluetooth.async_scanner_count(self.hass, connectable=True)
         if scanner_count == 0:
-            self.connected = False
+            self._connected = False
             _LOGGER.debug("Update coordinator: No bluetooth scanner available")
             return
 
@@ -110,17 +106,27 @@ class AcaiaClient(AcaiaScale):
             self.hass, self.mac, connectable=True
         )
 
-        if not self.connected and self._device_available:
+        if not self._connected and self._device_available:
+            if self._last_disconnect_time and self._last_disconnect_time > (
+                time.time() - 15
+            ):
+                _LOGGER.debug(
+                    "Acaia Client: Device with MAC %s disconnected less than 15 seconds ago, skipping connect",
+                    self.mac,
+                )
+                return
             _LOGGER.debug("Acaia Client: Connecting")
             await self.connect()
 
         elif not self._device_available:
-            self.connected = False
+            self._connected = False
             self.timer_running = False
             _LOGGER.debug(
                 "Acaia Client: Device with MAC %s not available",
                 self.mac,
             )
+            if self._notify_callback:
+                self._notify_callback()
         else:
             # send auth to get the battery level and units
             await self.auth()
