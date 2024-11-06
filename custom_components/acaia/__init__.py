@@ -1,52 +1,40 @@
-"""Initialize the Acaia component."""
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_MAC
+"""Initialize the acaia component."""
+
+from homeassistant.const import CONF_MAC, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
 
-from .const import CONF_MAC_ADDRESS, DOMAIN
-from .coordinator import AcaiaApiCoordinator
+from .coordinator import AcaiaConfigEntry, AcaiaCoordinator
 
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-PLATFORMS = ["button", "sensor", "binary_sensor"]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SENSOR]
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: AcaiaConfigEntry) -> bool:
     """Set up Acaia as config entry."""
 
-    hass.data.setdefault(DOMAIN, {})[
-        config_entry.entry_id
-    ] = coordinator = AcaiaApiCoordinator(hass, config_entry)
-
+    coordinator = AcaiaCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
-    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+    entry.runtime_data = coordinator
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: AcaiaConfigEntry) -> bool:
     """Unload a config entry."""
 
-    unload_ok = await hass.config_entries.async_unload_platforms(
-        config_entry, PLATFORMS
-    )
-
-    if unload_ok:
-        hass.data[DOMAIN].pop(config_entry.entry_id)
-
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-async def async_migrate_entry(hass, config_entry: ConfigEntry):
+async def async_migrate_entry(hass: HomeAssistant, entry: AcaiaConfigEntry) -> bool:
     """Migrate old entry."""
 
-    if config_entry.version == 1:
-        new = {**config_entry.data}
-        new[CONF_MAC] = new[CONF_MAC_ADDRESS]
+    if entry.version == 1:
+        new = {**entry.data}
+        new[CONF_MAC] = new["conf_mac_address"]
 
-        config_entry.version = 2
-        hass.config_entries.async_update_entry(config_entry, data=new)
+        entry.version = 2
+        hass.config_entries.async_update_entry(entry, data=new)
 
     return True

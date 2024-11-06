@@ -1,113 +1,150 @@
-"""Sensor platform for Acaia."""
+"""Sensor platform for acaia."""
+
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import cast
+
+from pyacaia_async.acaiascale import AcaiaDeviceState, AcaiaScale
+from pyacaia_async.const import UnitMass as AcaiaUnitOfMass
 
 from homeassistant.components.sensor import (
     RestoreSensor,
     SensorDeviceClass,
+    SensorEntity,
     SensorEntityDescription,
+    SensorExtraStoredData,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import UnitOfMass
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import StateType
 
-from pyacaia_async.const import BATTERY_LEVEL, OUNCE, UNITS, WEIGHT
-
-from .const import DOMAIN
-
+from .coordinator import AcaiaConfigEntry, AcaiaCoordinator
 from .entity import AcaiaEntity, AcaiaEntityDescription
 
 
-@dataclass
-class AcaiaSensorEntityDescriptionMixin:
-    """Mixin for Acaia Sensor entities."""
+@dataclass(kw_only=True, frozen=True)
+class AcaiaSensorEntityDescription(AcaiaEntityDescription, SensorEntityDescription):
+    """Description for acaia Sensor entities."""
 
-    unit_fn: Callable[[dict[str, Any]], str] | None
-
-
-@dataclass
-class AcaiaSensorEntityDescription(
-    SensorEntityDescription, AcaiaEntityDescription, AcaiaSensorEntityDescriptionMixin
-):
-    """Description for Acaia Sensor entities."""
+    unit_fn: Callable[[AcaiaDeviceState], str] | None = None
+    value_fn: Callable[[AcaiaScale], StateType]
 
 
 SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
     AcaiaSensorEntityDescription(
-        key=BATTERY_LEVEL,
+        key="weight",
+        translation_key="weight",
+        device_class=SensorDeviceClass.WEIGHT,
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        state_class=SensorStateClass.MEASUREMENT,
+        unit_fn=lambda data: (
+            UnitOfMass.OUNCES
+            if data.units == AcaiaUnitOfMass.OUNCES
+            else UnitOfMass.GRAMS
+        ),
+        value_fn=lambda scale: scale.weight,
+    ),
+)
+RESTORE_SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
+    AcaiaSensorEntityDescription(
+        key="battery",
         translation_key="battery",
         device_class=SensorDeviceClass.BATTERY,
         native_unit_of_measurement="%",
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:battery",
-        unique_id_fn=lambda scale: f"{scale.mac}_battery",
-        unit_fn=None,
-    ),
-    AcaiaSensorEntityDescription(
-        key=WEIGHT,
-        translation_key="weight",
-        device_class=SensorDeviceClass.WEIGHT,
-        native_unit_of_measurement="g",
-        state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:scale",
-        unique_id_fn=lambda scale: f"{scale.mac}_weight",
-        unit_fn=lambda data: "oz" if data.get(UNITS) == OUNCE else "g",
+        value_fn=lambda scale: (
+            scale.device_state.battery_level if scale.device_state else None
+        ),
     ),
 )
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: AcaiaConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up button entities and services."""
 
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities(
-        [AcaiaSensor(coordinator, entity_description) for entity_description in SENSORS]
+    coordinator = entry.runtime_data
+    entities = [
+        AcaiaSensor(coordinator, entity_description) for entity_description in SENSORS
+    ]
+    entities.extend(
+        AcaiaRestoreSensor(coordinator, entity_description)
+        for entity_description in RESTORE_SENSORS
     )
+    async_add_entities(entities)
 
 
-class AcaiaSensor(AcaiaEntity, RestoreSensor):
+class AcaiaSensor(AcaiaEntity, SensorEntity):
     """Representation of a Acaia Sensor."""
 
     entity_description: AcaiaSensorEntityDescription
 
-    def __init__(self, coordinator, entity_description) -> None:
+    def __init__(
+        self,
+        coordinator: AcaiaCoordinator,
+        entity_description: AcaiaSensorEntityDescription,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, entity_description)
+        self._attr_native_unit_of_measurement = (
+            entity_description.native_unit_of_measurement
+        )
+        self._scale = coordinator.scale
 
-        self._native_unit_of_measurement = entity_description.native_unit_of_measurement
-        self._data: dict[str, Any] = {}
-        self._restored: bool = False
+    @property
+    def native_value(self) -> StateType:
+        """Return the state of the sensor."""
+        return self.entity_description.value_fn(self._scale)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._data = self.coordinator.data.data
-        self.async_write_ha_state()
+
+class AcaiaRestoreSensor(AcaiaSensor, RestoreSensor):
+    """Representation of a Acaia Sensor with restore capabilities."""
+
+    entity_description: AcaiaSensorEntityDescription
+
+    def __init__(
+        self,
+        coordinator: AcaiaCoordinator,
+        entity_description: AcaiaSensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, entity_description)
+        self._restored_data: SensorExtraStoredData | None = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()
-        if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-            self._data[self.entity_description.key] = last_sensor_data.native_value
-            self._native_unit_of_measurement = (
-                last_sensor_data.native_unit_of_measurement
-            )
-            self._restored = True
+        self._restored_data = await self.async_get_last_sensor_data()
 
     @property
-    def native_unit_of_measurement(self) -> str:
-        """Return the unit of measurement."""
-        if not self._restored and self.entity_description.unit_fn is not None:
-            self.entity_description.unit_fn(self._data)
-        return self._native_unit_of_measurement
-
-    @property
-    def native_value(self) -> float:
+    def native_value(self) -> StateType:
         """Return the state of the sensor."""
-        return self._data.get(self.entity_description.key, 0)
+        if (value := self.entity_description.value_fn(self._scale)) is not None:
+            return value
+
+        if self._restored_data is None:
+            return None
+
+        return cast(StateType, self._restored_data.native_value)
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit of measurement of this entity."""
+        if self._restored_data is not None:
+            return self._restored_data.native_unit_of_measurement
+        if (
+            self.entity_description.unit_fn is not None
+            and (device_state := self._scale.device_state) is not None
+        ):
+            return self.entity_description.unit_fn(device_state)
+        return self.entity_description.native_unit_of_measurement
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return super().available or self._restored_data is not None

@@ -1,44 +1,87 @@
-"""Coordinator for Acaia integration."""
+"""Coordinator for acaia integration."""
+
+from __future__ import annotations
+
 from datetime import timedelta
 import logging
 
+from pyacaia_async.acaiascale import AcaiaScale
+from pyacaia_async.exceptions import AcaiaDeviceNotFound, AcaiaError
+
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_MAC
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from pyacaia_async.exceptions import AcaiaError
-
-from .acaiaclient import AcaiaClient
+from .const import CONF_IS_NEW_STYLE_SCALE
 
 SCAN_INTERVAL = timedelta(seconds=15)
 
 _LOGGER = logging.getLogger(__name__)
 
+type AcaiaConfigEntry = ConfigEntry[AcaiaCoordinator]
 
-class AcaiaApiCoordinator(DataUpdateCoordinator[AcaiaClient]):
+
+class AcaiaCoordinator(DataUpdateCoordinator[None]):
     """Class to handle fetching data from the La Marzocco API centrally."""
 
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    config_entry: AcaiaConfigEntry
+
+    @property
+    def scale(self) -> AcaiaScale:
+        """Return the scale object."""
+        return self._scale
+
+    def __init__(self, hass: HomeAssistant, entry: AcaiaConfigEntry) -> None:
         """Initialize coordinator."""
         super().__init__(
             hass,
             _LOGGER,
-            name="Acaia API coordinator",
+            name="Acaia coordinator",
             update_interval=SCAN_INTERVAL,
+            config_entry=entry,
         )
 
-        self._acaia_client: AcaiaClient = AcaiaClient(
-            hass=hass,
-            entry=config_entry,
+        self._scale = AcaiaScale(
+            mac=entry.data[CONF_MAC],
+            is_new_style_scale=entry.data[CONF_IS_NEW_STYLE_SCALE],
             notify_callback=self.async_update_listeners,
         )
-        self.data = self._acaia_client
 
-    async def _async_update_data(self) -> AcaiaClient:
+    async def _async_update_data(self) -> None:
         """Fetch data."""
-        try:
-            await self._acaia_client.async_update()
-        except (AcaiaError, TimeoutError) as ex:
-            raise UpdateFailed("Error: %s" % ex) from ex
 
-        return self._acaia_client
+        # scale is already connected, return
+        if self._scale.connected:
+            return
+
+        # scale is not connected, try to connect
+        try:
+            await self._scale.connect(setup_tasks=False)
+        except (AcaiaDeviceNotFound, AcaiaError, TimeoutError) as ex:
+            _LOGGER.debug(
+                "Could not connect to scale: %s, Error: %s",
+                self.config_entry.data[CONF_MAC],
+                ex,
+            )
+            self._scale.connected = False
+            self._scale.timer_running = False
+            self._scale.async_empty_queue_and_cancel_tasks()
+            return
+
+        # connected, set up background tasks
+        if not self.scale.heartbeat_task or self.scale.heartbeat_task.done():
+            self.scale.heartbeat_task = self.config_entry.async_create_background_task(
+                hass=self.hass,
+                target=self.scale.send_heartbeats(),
+                name="acaia_heartbeat_task",
+            )
+
+        if not self.scale.process_queue_task or self.scale.process_queue_task.done():
+            self.scale.process_queue_task = (
+                self.config_entry.async_create_background_task(
+                    hass=self.hass,
+                    target=self.scale.process_queue(),
+                    name="acaia_process_queue_task",
+                )
+            )

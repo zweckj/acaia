@@ -1,5 +1,6 @@
 {
-    "name": "Acaia",
-    "hide_default_branch": true,
-    "render_readme": true
+  "name": "Acaia",
+  "hide_default_branch": true,
+  "render_readme": true,
+  "homeassistant": "2024.11.0b0"
 }
