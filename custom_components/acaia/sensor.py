@@ -4,8 +4,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import cast
 
-from pyacaia_async.acaiascale import AcaiaDeviceState, AcaiaScale
-from pyacaia_async.const import UnitMass as AcaiaUnitOfMass
+from aioacaia.acaiascale import AcaiaDeviceState, AcaiaScale
+from aioacaia.const import UnitMass as AcaiaUnitOfMass
 
 from homeassistant.components.sensor import (
     RestoreSensor,

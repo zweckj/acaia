@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from pyacaia_async.acaiascale import AcaiaScale
+from aioacaia.acaiascale import AcaiaScale
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,

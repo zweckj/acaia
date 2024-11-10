@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from pyacaia_async.acaiascale import AcaiaScale
+from aioacaia.acaiascale import AcaiaScale
 
 from homeassistant.const import CONF_NAME, CONF_MAC
 from homeassistant.core import callback
