@@ -1,14 +1,23 @@
 {
   "config": {
+    "abort": {
+      "already_configured": "Device is already configured",
+      "no_devices_found": "No devices found on the network",
+      "unsupported_device": "This device is not supported."
+    },
+    "error": {
+      "device_not_found": "Device could not be found.",
+      "unknown": "Unexpected error"
+    },
     "step": {
       "user": {
-        "title": "Setup your Acaia scale",
-        "description": "Set a name of your choosing and enter the mac address of your scale.",
         "data": {
-          "name": "Display name",
-          "mac_address": "MAC address",
-          "is_new_style_scale": "Is this a newer (than 2021) scale? If the integration fails to work, try toggling this setting."
-        }
+          "mac_address": "MAC address"
+        },
+        "data_description": {
+          "mac_address": "The MAC address of your scale"
+        },
+        "title": "Set up your acaia scale"
       }
     }
   },
