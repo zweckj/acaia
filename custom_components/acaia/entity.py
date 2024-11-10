@@ -43,7 +43,8 @@ class AcaiaEntity(CoordinatorEntity[AcaiaCoordinator]):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, mac)},
-            name=coordinator.config_entry.data.get(CONF_NAME),
+            name=coordinator.config_entry.data.get(CONF_NAME)
+            or coordinator.config_entry.title,
             manufacturer="acaia",
         )
 

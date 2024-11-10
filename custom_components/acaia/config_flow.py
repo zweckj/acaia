@@ -1,17 +1,29 @@
-"""Config flow for acaia integration."""
+"""Config flow for Acaia integration."""
 
+import logging
 from typing import Any
 
+from aioacaia.exceptions import AcaiaDeviceNotFound, AcaiaError, AcaiaUnknownDevice
+from aioacaia.helpers import is_new_scale
 import voluptuous as vol
 
-from homeassistant.config_entries import (
-    SOURCE_USER,
-    ConfigFlow,
-    ConfigFlowResult,
+from homeassistant.components.bluetooth import (
+    BluetoothServiceInfoBleak,
+    async_discovered_service_info,
 )
+from homeassistant.config_entries import SOURCE_USER, ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.helpers.device_registry import format_mac
+from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .const import CONF_IS_NEW_STYLE_SCALE, DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class AcaiaConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -21,69 +33,103 @@ class AcaiaConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Initialize the config flow."""
-        self._discovered: dict[str, str] = {}
+        self._discovered: dict[str, Any] = {}
+        self._discovered_devices: dict[str, str] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
 
+        errors: dict[str, str] = {}
+
         if user_input is not None:
+            # we already check compatibility in the discovery step
+            # only check if the user has entered the MAC manually
             if self.source == SOURCE_USER:
-                await self.async_set_unique_id(user_input[CONF_MAC])
-                self._abort_if_unique_id_configured()
-            return self.async_create_entry(
-                title="acaia",
-                data={**self._discovered, **user_input},
+                try:
+                    is_new_style_scale = await is_new_scale(user_input[CONF_MAC])
+                except AcaiaDeviceNotFound:
+                    errors["base"] = "device_not_found"
+                except AcaiaError:
+                    _LOGGER.exception("Error occurred while connecting to the scale")
+                    errors["base"] = "unknown"
+                except AcaiaUnknownDevice:
+                    return self.async_abort(reason="unsupported_device")
+                else:
+                    await self.async_set_unique_id(format_mac(user_input[CONF_MAC]))
+                    self._abort_if_unique_id_configured()
+
+            if not errors:
+                return self.async_create_entry(
+                    title=self._discovered.get(CONF_NAME)
+                    or self._discovered_devices[user_input[CONF_MAC]],
+                    data={
+                        CONF_MAC: self._discovered.get(CONF_MAC)
+                        or user_input[CONF_MAC],
+                        CONF_IS_NEW_STYLE_SCALE: self._discovered.get(
+                            CONF_IS_NEW_STYLE_SCALE
+                        )
+                        or is_new_style_scale,
+                    },
+                )
+
+        for device in async_discovered_service_info(self.hass):
+            self._discovered_devices[device.address] = device.name
+
+        if not self._discovered_devices:
+            return self.async_abort(reason="no_devices_found")
+
+        options = [
+            SelectOptionDict(
+                value=device_mac,
+                label=f"{device_name} ({device_mac})",
             )
+            for device_mac, device_name in self._discovered_devices.items()
+        ]
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_MAC): str,
-                    vol.Optional(CONF_IS_NEW_STYLE_SCALE, default=True): bool,
-                },
+                    vol.Required(CONF_MAC): SelectSelector(
+                        SelectSelectorConfig(
+                            options=options,
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    )
+                }
             ),
+            errors=errors,
         )
 
-    async def async_step_bluetooth(self, discovery_info) -> ConfigFlowResult:
+    async def async_step_bluetooth(
+        self, discovery_info: BluetoothServiceInfoBleak
+    ) -> ConfigFlowResult:
         """Handle a discovered Bluetooth device."""
 
         self._discovered[CONF_MAC] = discovery_info.address
         self._discovered[CONF_NAME] = discovery_info.name
 
-        await self.async_set_unique_id(discovery_info.address)
+        await self.async_set_unique_id(format_mac(discovery_info.address))
         self._abort_if_unique_id_configured()
 
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {vol.Optional(CONF_IS_NEW_STYLE_SCALE, default=True): bool}
-            ),
-        )
-
-    async def async_step_reconfigure(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Perform reconfiguration of the config entry."""
-        reconfigure_entry = self._get_reconfigure_entry()
-
-        if not user_input:
-            return self.async_show_form(
-                step_id="reconfigure",
-                data_schema=vol.Schema(
-                    {
-                        vol.Required(
-                            CONF_MAC,
-                            default=reconfigure_entry.data[CONF_MAC],
-                        ): str,
-                        vol.Optional(
-                            CONF_IS_NEW_STYLE_SCALE,
-                            default=reconfigure_entry.data[CONF_IS_NEW_STYLE_SCALE],
-                        ): str,
-                    }
-                ),
+        try:
+            self._discovered[CONF_IS_NEW_STYLE_SCALE] = await is_new_scale(
+                discovery_info.address
             )
+        except AcaiaDeviceNotFound:
+            _LOGGER.debug("Device not found during discovery")
+            return self.async_abort(reason="device_not_found")
+        except AcaiaError:
+            _LOGGER.debug(
+                "Error occurred while connecting to the scale during discovery",
+                exc_info=True,
+            )
+            return self.async_abort(reason="unknown")
+        except AcaiaUnknownDevice:
+            _LOGGER.debug("Unsupported device during discovery")
+            return self.async_abort(reason="unsupported_device")
 
-        return await self.async_step_user({**reconfigure_entry.data, **user_input})
+        self._set_confirm_only()
+        return self.async_show_form(step_id="user")
