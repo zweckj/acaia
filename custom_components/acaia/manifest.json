@@ -17,5 +17,5 @@
   "issue_tracker": "https://github.com/zweckj/acaia/issues",
   "requirements": ["aioacaia==0.1.2"],
   "loggers": ["aioacaia"],
-  "version": "0.3.3"
+  "version": "0.3.4"
 }
