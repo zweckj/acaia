@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar a sua Balança Acaia",
+        "description": "Defina um nome à sua escolha e introduza o endereço MAC da sua balança.",
+        "data": {
+          "name": "Nome de Exibição",
+          "mac_address": "Endereço MAC",
+          "is_new_style_scale": "Esta é uma balança mais recente (posterior a 2021)? Se a integração falhar, experimente alterar esta configuração."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "timer_running": {
+        "name": "Temporizador em funcionamento"
+      },
+      "connected": {
+        "name": "Ligado"
+      }
+    },
+    "button": {
+      "tare": {
+        "name": "Tarar"
+      },
+      "reset_timer": {
+        "name": "Reiniciar temporizador"
+      },
+      "start_stop": {
+        "name": "Iniciar/Parar Temporizador"
+      }
+    },
+    "sensor": {
+      "weight": {
+        "name": "Peso"
+      },
+      "battery": {
+        "name": "Bateria"
+      }
+    }
+  }
+}
