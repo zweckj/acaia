@@ -46,6 +46,14 @@ SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
         ),
         value_fn=lambda scale: scale.weight,
     ),
+    AcaiaSensorEntityDescription(
+        key="flow_rate",
+        translation_key="flow_rate",
+        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
+        native_unit_of_measurement="mL/s", 
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda scale: scale.flow_rate,
+    ),
 )
 RESTORE_SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
     AcaiaSensorEntityDescription(

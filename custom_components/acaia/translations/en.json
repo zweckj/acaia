@@ -38,6 +38,9 @@
       },
       "battery": {
         "name": "Battery"
+      },
+      "flow_rate": {
+        "name": "Flow Rate"
       }
     }
   }
