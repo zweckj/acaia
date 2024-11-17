@@ -32,7 +32,7 @@
         "default": "mdi:scale"
       },
       "flow_rate": {
-        "default": "mdi:speedometer"
+        "default": "mdi:cup-water"
       }
     }
   }
