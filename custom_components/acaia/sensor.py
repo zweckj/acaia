@@ -52,6 +52,7 @@ SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
         native_unit_of_measurement="mL/s", 
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda scale: scale.flow_rate,
+        suggested_display_precision=1,
     ),
 )
 RESTORE_SENSORS: tuple[AcaiaSensorEntityDescription, ...] = (
