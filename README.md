@@ -1,7 +1,7 @@
 # Acaia Scales Home Assistant Integration
 
 > [!CAUTION]
-> This integration is included with Home Assistant since version 2024.12. Switch to the the built in integration instead.
+> This integration is included with Home Assistant since version 2024.12. Switch to the the built-in integration instead.
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=zweckj&repository=acaia&category=integration)
 
